@@ -1,0 +1,57 @@
+package pages
+
+import (
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+	"github.com/kasku/kasku/web/templates/layout"
+	"github.com/kasku/kasku/web/templates/partials"
+)
+
+type DashboardData struct {
+	User         *model.User
+	Family       *model.Family
+	Flash        components.FlashData
+	TotalBalance float64
+	Currency     string
+	CurrentMonth string
+	Summary      *model.MonthlySummary
+	Wallets      []*model.Wallet
+	RecentEntries []*model.LedgerEntry
+}
+
+templ Dashboard(d DashboardData) {
+	@layout.Base("Dashboard", d.User, d.Flash) {
+		<!-- Page header -->
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold text-gray-900">{ d.Family.Name }</h1>
+			<p class="text-sm text-gray-500 mt-0.5">{ components.FormatMonth(d.CurrentMonth) } Overview</p>
+		</div>
+		<!-- Summary cards -->
+		<div id="monthly-totals" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+			@partials.MonthlyTotals(d.Summary, d.TotalBalance, d.Currency)
+		</div>
+		<!-- Wallet balances -->
+		<div class="mb-8">
+			<div class="flex items-center justify-between mb-3">
+				<h2 class="text-base font-semibold text-gray-900">Wallets</h2>
+				<a href="/wallets" class="text-sm text-indigo-600 hover:underline">Manage wallets</a>
+			</div>
+			<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+				for _, w := range d.Wallets {
+					@components.WalletCard(w)
+				}
+				if len(d.Wallets) == 0 {
+					<p class="text-sm text-gray-400 col-span-3">No wallets yet. <a href="/wallets" class="text-indigo-600 hover:underline">Create one.</a></p>
+				}
+			</div>
+		</div>
+		<!-- Recent transactions -->
+		<div>
+			<div class="flex items-center justify-between mb-3">
+				<h2 class="text-base font-semibold text-gray-900">Recent Transactions</h2>
+				<a href="/ledger" class="text-sm text-indigo-600 hover:underline">View all</a>
+			</div>
+			@partials.LedgerTable(d.RecentEntries, nil)
+		</div>
+	}
+}

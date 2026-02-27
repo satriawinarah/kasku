@@ -1,0 +1,67 @@
+package partials
+
+import (
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+)
+
+// LedgerTable renders ledger entries as cards on mobile, table on desktop.
+templ LedgerTable(entries []*model.LedgerEntry, summary *model.MonthlySummary) {
+	<div id="ledger-table-body">
+		if len(entries) == 0 {
+			<div class="py-12 text-center text-gray-400">
+				<p>No transactions this period.</p>
+			</div>
+		} else {
+			<!-- Mobile: card list -->
+			<div class="sm:hidden space-y-3">
+				if summary != nil {
+					<div class="flex gap-3 text-sm font-semibold px-1 mb-2">
+						<span class="text-green-600">+{ components.FormatMoney(summary.TotalCredit) }</span>
+						<span class="text-red-500">-{ components.FormatMoney(summary.TotalDebit) }</span>
+						<span class="text-gray-500 ml-auto">Net: { components.FormatMoney(summary.Net) }</span>
+					</div>
+				}
+				for _, e := range entries {
+					@components.LedgerCard(e)
+				}
+			</div>
+			<!-- Desktop: table -->
+			<div class="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+				<table class="w-full text-left">
+					<thead>
+						<tr class="border-b border-gray-100 bg-gray-50">
+							<th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Date</th>
+							<th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Category</th>
+							<th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide hidden lg:table-cell">Wallet</th>
+							<th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide hidden lg:table-cell">Note</th>
+							<th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide text-right">Amount</th>
+							<th class="px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">By</th>
+							<th class="px-4 py-3"></th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, e := range entries {
+							@components.LedgerRow(e)
+						}
+					</tbody>
+					if summary != nil {
+						<tfoot class="border-t border-gray-200 bg-gray-50">
+							<tr>
+								<td colspan="2" class="px-4 py-3 text-sm font-medium text-gray-500">Monthly Total</td>
+								<td class="hidden lg:table-cell"></td>
+								<td class="hidden lg:table-cell"></td>
+								<td class="px-4 py-3 text-sm font-semibold text-right">
+									<span class="text-green-600 block">+{ components.FormatMoney(summary.TotalCredit) }</span>
+									<span class="text-red-500 block">-{ components.FormatMoney(summary.TotalDebit) }</span>
+								</td>
+								<td></td>
+								<td></td>
+							</tr>
+						</tfoot>
+					}
+				</table>
+			</div>
+		}
+	</div>
+}

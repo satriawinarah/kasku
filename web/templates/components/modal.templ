@@ -1,0 +1,27 @@
+package components
+
+// ModalShell wraps content in a modal overlay. Used by form fragments returned via HTMX.
+templ ModalShell(title string) {
+	<div class="fixed inset-0 z-50 overflow-y-auto" id="modal-inner">
+		<!-- Backdrop -->
+		<div class="fixed inset-0 bg-black bg-opacity-40 transition-opacity"
+			hx-on:click="document.getElementById('modal').innerHTML=''"></div>
+		<!-- Panel -->
+		<div class="flex min-h-full items-end sm:items-center justify-center sm:p-4">
+			<div class="relative bg-white rounded-t-xl sm:rounded-xl shadow-xl w-full sm:max-w-lg p-5 sm:p-6 max-h-[90vh] overflow-y-auto">
+				<div class="flex items-center justify-between mb-5">
+					<h2 class="text-lg font-semibold text-gray-900">{ title }</h2>
+					<button
+						type="button"
+						class="text-gray-400 hover:text-gray-600"
+						hx-on:click="document.getElementById('modal').innerHTML=''">
+						<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						</svg>
+					</button>
+				</div>
+				{ children... }
+			</div>
+		</div>
+	</div>
+}

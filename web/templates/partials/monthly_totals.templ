@@ -1,0 +1,23 @@
+package partials
+
+import (
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+)
+
+// MonthlyTotals renders the three summary cards (income / expenses / net + total balance).
+// It includes hx-swap-oob so HTMX can update it from any response.
+templ MonthlyTotals(s *model.MonthlySummary, totalBalance float64, currency string) {
+	if s != nil {
+		@components.SummaryCard("Income", "green", s.TotalCredit, currency)
+		@components.SummaryCard("Expenses", "red", s.TotalDebit, currency)
+		@components.SummaryCard("Net Balance", "indigo", s.Net, currency)
+	}
+}
+
+// MonthlyTotalsOOB is the same content but wrapped for HTMX out-of-band swap.
+templ MonthlyTotalsOOB(s *model.MonthlySummary, totalBalance float64, currency string) {
+	<div id="monthly-totals" hx-swap-oob="innerHTML" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+		@MonthlyTotals(s, totalBalance, currency)
+	</div>
+}

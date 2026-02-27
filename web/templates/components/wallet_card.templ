@@ -1,0 +1,57 @@
+package components
+
+import (
+	"fmt"
+	"github.com/kasku/kasku/internal/model"
+)
+
+templ WalletCard(w *model.Wallet) {
+	<div id={ fmt.Sprintf("wallet-%d-card", w.ID) } class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 flex flex-col gap-3">
+		<div class="flex items-start justify-between">
+			<div>
+				<h3 class="font-semibold text-gray-900">{ w.Name }</h3>
+				<span class="inline-block mt-1 text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700">
+					{ w.TypeLabel() }
+				</span>
+			</div>
+			if !w.IsActive {
+				<span class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">Inactive</span>
+			}
+		</div>
+		<div>
+			<p class="text-xs text-gray-400">Balance</p>
+			<p class={ "text-xl font-bold " + balanceColor(w.Balance) }>
+				{ w.Currency } { formatMoney(w.Balance) }
+			</p>
+		</div>
+		if w.Description.Valid && w.Description.String != "" {
+			<p class="text-xs text-gray-400">{ w.Description.String }</p>
+		}
+		<div class="flex gap-2 pt-1">
+			<button
+				class="text-xs text-indigo-600 hover:underline"
+				hx-get={ fmt.Sprintf("/wallets/%d/edit", w.ID) }
+				hx-target="#modal"
+				hx-swap="innerHTML">
+				Edit
+			</button>
+			if w.IsActive {
+				<button
+					class="text-xs text-red-500 hover:underline"
+					hx-delete={ fmt.Sprintf("/wallets/%d", w.ID) }
+					hx-target={ fmt.Sprintf("#wallet-%d-card", w.ID) }
+					hx-swap="outerHTML"
+					hx-confirm="Deactivate this wallet?">
+					Deactivate
+				</button>
+			}
+		</div>
+	</div>
+}
+
+func balanceColor(balance float64) string {
+	if balance < 0 {
+		return "text-red-600"
+	}
+	return "text-gray-900"
+}

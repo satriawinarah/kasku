@@ -1,0 +1,23 @@
+package layout
+
+templ Auth(title string) {
+	<!DOCTYPE html>
+	<html lang="en" class="h-full bg-gray-50">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } — Kasku</title>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+		</head>
+		<body class="h-full flex items-center justify-center">
+			<div class="w-full max-w-md">
+				<div class="text-center mb-8">
+					<h1 class="text-3xl font-bold text-indigo-600">Kasku</h1>
+					<p class="text-gray-500 mt-1">Family Money Manager</p>
+				</div>
+				{ children... }
+			</div>
+		</body>
+	</html>
+}

@@ -1,0 +1,62 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+	"github.com/kasku/kasku/web/templates/layout"
+	"github.com/kasku/kasku/web/templates/partials"
+)
+
+type LedgerData struct {
+	User             *model.User
+	Flash            components.FlashData
+	Wallets          []*model.Wallet
+	SelectedWalletID int64
+	CurrentMonth     string
+	Entries          []*model.LedgerEntry
+	Summary          *model.MonthlySummary
+}
+
+templ Ledger(d LedgerData) {
+	@layout.Base("Ledger", d.User, d.Flash) {
+		<div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+			<h1 class="text-2xl font-bold text-gray-900">Ledger</h1>
+			<button
+				class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+				hx-get="/ledger/new"
+				hx-target="#modal"
+				hx-swap="innerHTML">
+				<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+				</svg>
+				Add Entry
+			</button>
+		</div>
+		<!-- Filter bar -->
+		<div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-5 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
+			@components.MonthSwitcher(d.CurrentMonth, d.SelectedWalletID)
+			<!-- Wallet filter -->
+			<select
+				id="wallet-filter"
+				name="wallet"
+				hx-get="/ledger/entries"
+				hx-target="#ledger-content"
+				hx-swap="innerHTML"
+				hx-include="#wallet-filter"
+				hx-trigger="change"
+				class="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:ml-auto w-full sm:w-auto">
+				<option value="0">All Wallets</option>
+				for _, w := range d.Wallets {
+					<option value={ fmt.Sprintf("%d", w.ID) } selected?={ d.SelectedWalletID == w.ID }>
+						{ w.Name }
+					</option>
+				}
+			</select>
+		</div>
+		<!-- Ledger content swapped by HTMX -->
+		<div id="ledger-content">
+			@partials.LedgerTable(d.Entries, d.Summary)
+		</div>
+	}
+}

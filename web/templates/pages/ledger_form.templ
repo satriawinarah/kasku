@@ -1,0 +1,114 @@
+package pages
+
+import (
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+	"time"
+	"fmt"
+)
+
+type LedgerFormData struct {
+	Wallets     []*model.Wallet
+	FieldErrors map[string]string
+	Error       string
+	Month       string
+	WalletID    int64
+}
+
+templ LedgerForm(d LedgerFormData) {
+	@components.ModalShell("Add Transaction") {
+		if d.Error != "" {
+			<div class="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+				{ d.Error }
+			</div>
+		}
+		<form
+			hx-post="/ledger"
+			hx-target="#ledger-content"
+			hx-swap="innerHTML"
+			class="space-y-4">
+			<input type="hidden" name="month" value={ d.Month }/>
+			<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<!-- Type -->
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-1">Type <span class="text-red-500">*</span></label>
+					<select name="type" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+						<option value="debit">Expense (Debit)</option>
+						<option value="credit">Income (Credit)</option>
+					</select>
+				</div>
+				<!-- Amount -->
+				<div>
+					<label class="block text-sm font-medium text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+					<input
+						type="number"
+						name="amount"
+						step="1"
+						min="1"
+						required
+						placeholder="0"
+						class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+					if d.FieldErrors["amount"] != "" {
+						<p class="mt-1 text-xs text-red-600">{ d.FieldErrors["amount"] }</p>
+					}
+				</div>
+			</div>
+			<!-- Wallet -->
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">Wallet <span class="text-red-500">*</span></label>
+				<select name="wallet_id" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+					for _, w := range d.Wallets {
+						<option value={ fmt.Sprintf("%d", w.ID) } selected?={ w.ID == d.WalletID }>
+							{ w.Name }
+						</option>
+					}
+				</select>
+			</div>
+			<!-- Category -->
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">Category <span class="text-red-500">*</span></label>
+				<select name="category" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+					for _, c := range model.Categories() {
+						<option value={ string(c) }>{ model.CategoryLabel(c) }</option>
+					}
+				</select>
+			</div>
+			<!-- Date -->
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">Date <span class="text-red-500">*</span></label>
+				<input
+					type="date"
+					name="date"
+					required
+					value={ todayStr() }
+					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+			</div>
+			<!-- Note -->
+			<div>
+				<label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+				<input
+					type="text"
+					name="note"
+					placeholder="Optional description"
+					class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+			</div>
+			<div class="flex gap-3 pt-2">
+				<button
+					type="submit"
+					class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors">
+					Save Entry
+				</button>
+				<button
+					type="button"
+					class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 rounded-lg text-sm transition-colors"
+					hx-on:click="document.getElementById('modal').innerHTML=''">
+					Cancel
+				</button>
+			</div>
+		</form>
+	}
+}
+
+func todayStr() string {
+	return time.Now().Format("2006-01-02")
+}

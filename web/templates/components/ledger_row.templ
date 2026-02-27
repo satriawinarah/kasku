@@ -1,0 +1,82 @@
+package components
+
+import (
+	"fmt"
+	"github.com/kasku/kasku/internal/model"
+)
+
+// LedgerRow renders a single entry as a desktop table row.
+templ LedgerRow(e *model.LedgerEntry) {
+	<tr class="hover:bg-gray-50 border-b border-gray-100">
+		<td class="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">
+			{ e.Date.Format("02 Jan 2006") }
+		</td>
+		<td class="px-4 py-3 text-sm text-gray-700">
+			{ model.CategoryLabel(e.Category) }
+		</td>
+		<td class="px-4 py-3 text-sm text-gray-500 hidden lg:table-cell">
+			{ e.WalletName }
+		</td>
+		<td class="px-4 py-3 text-sm text-gray-400 hidden lg:table-cell">
+			if e.Note.Valid {
+				{ e.Note.String }
+			}
+		</td>
+		<td class="px-4 py-3 text-sm font-semibold text-right whitespace-nowrap">
+			if e.IsCredit() {
+				<span class="text-green-600">+{ formatMoney(e.Amount) }</span>
+			} else {
+				<span class="text-red-500">-{ formatMoney(e.Amount) }</span>
+			}
+		</td>
+		<td class="px-4 py-3 text-xs text-gray-400 whitespace-nowrap hidden sm:table-cell">
+			{ e.UserName }
+		</td>
+		<td class="px-4 py-3">
+			<button
+				class="text-xs text-red-400 hover:text-red-600"
+				hx-delete={ fmt.Sprintf("/ledger/%d", e.ID) }
+				hx-target="closest tr"
+				hx-swap="outerHTML"
+				hx-confirm="Delete this entry?">
+				Del
+			</button>
+		</td>
+	</tr>
+}
+
+// LedgerCard renders a single entry as a mobile-friendly card.
+templ LedgerCard(e *model.LedgerEntry) {
+	<div id={ fmt.Sprintf("entry-%d", e.ID) } class="bg-white rounded-lg border border-gray-200 p-4 flex items-start justify-between gap-3">
+		<div class="flex-1 min-w-0">
+			<div class="flex items-center gap-2 mb-1">
+				<span class="text-sm font-medium text-gray-900">{ model.CategoryLabel(e.Category) }</span>
+				<span class="text-xs text-gray-400">{ e.WalletName }</span>
+			</div>
+			if e.Note.Valid && e.Note.String != "" {
+				<p class="text-xs text-gray-400 truncate">{ e.Note.String }</p>
+			}
+			<div class="flex items-center gap-2 mt-1.5">
+				<span class="text-xs text-gray-400">{ e.Date.Format("02 Jan") }</span>
+				<span class="text-xs text-gray-300">by { e.UserName }</span>
+			</div>
+		</div>
+		<div class="text-right shrink-0">
+			if e.IsCredit() {
+				<span class="text-sm font-bold text-green-600">+{ formatMoney(e.Amount) }</span>
+			} else {
+				<span class="text-sm font-bold text-red-500">-{ formatMoney(e.Amount) }</span>
+			}
+			<div class="mt-1">
+				<button
+					class="text-xs text-red-400 hover:text-red-600"
+					hx-delete={ fmt.Sprintf("/ledger/%d", e.ID) }
+					hx-target={ fmt.Sprintf("#entry-%d", e.ID) }
+					hx-swap="outerHTML"
+					hx-confirm="Delete this entry?">
+					Delete
+				</button>
+			</div>
+		</div>
+	</div>
+}

@@ -1,0 +1,69 @@
+package components
+
+import (
+	"fmt"
+	"time"
+)
+
+templ MonthSwitcher(current string, walletID int64) {
+	<div id="month-switcher" class="flex items-center gap-3">
+		@monthArrow("prev", prevMonth(current), walletID)
+		<span class="text-sm font-semibold text-gray-700 min-w-[120px] text-center">
+			{ formatMonth(current) }
+		</span>
+		@monthArrow("next", nextMonth(current), walletID)
+	</div>
+}
+
+templ monthArrow(dir, month string, walletID int64) {
+	<button
+		class="p-1.5 rounded-md hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+		hx-get={ monthURL(month, walletID) }
+		hx-target="#ledger-content"
+		hx-swap="innerHTML">
+		if dir == "prev" {
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+			</svg>
+		} else {
+			<svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+			</svg>
+		}
+	</button>
+}
+
+func formatMonth(m string) string {
+	t, err := time.Parse("2006-01", m)
+	if err != nil {
+		return m
+	}
+	return t.Format("January 2006")
+}
+
+func prevMonth(m string) string {
+	t, err := time.Parse("2006-01", m)
+	if err != nil {
+		return m
+	}
+	return t.AddDate(0, -1, 0).Format("2006-01")
+}
+
+func nextMonth(m string) string {
+	t, err := time.Parse("2006-01", m)
+	if err != nil {
+		return m
+	}
+	return t.AddDate(0, 1, 0).Format("2006-01")
+}
+
+func monthURL(month string, walletID int64) string {
+	if walletID > 0 {
+		return "/ledger/entries?month=" + month + "&wallet=" + itoa(walletID)
+	}
+	return "/ledger/entries?month=" + month
+}
+
+func itoa(n int64) string {
+	return fmt.Sprintf("%d", n)
+}

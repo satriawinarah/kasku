@@ -1,0 +1,28 @@
+package components
+
+import "fmt"
+
+templ SummaryCard(label, color string, amount float64, currency string) {
+	<div class={ "rounded-xl border p-5 bg-white shadow-sm border-" + color + "-100" }>
+		<p class="text-sm font-medium text-gray-500">{ label }</p>
+		<p class={ "mt-1 text-2xl font-bold text-" + color + "-600" }>
+			{ currency } { formatMoney(amount) }
+		</p>
+	</div>
+}
+
+func formatMoney(v float64) string {
+	// Simple Indonesian-style formatting without external libs
+	if v < 0 {
+		return "-" + formatMoney(-v)
+	}
+	s := fmt.Sprintf("%.0f", v)
+	out := []byte{}
+	for i, c := range s {
+		if i > 0 && (len(s)-i)%3 == 0 {
+			out = append(out, '.')
+		}
+		out = append(out, byte(c))
+	}
+	return string(out)
+}

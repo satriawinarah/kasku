@@ -1,0 +1,14 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/kasku ./cmd/kasku"
+  bin = "./tmp/kasku"
+  full_bin = "./tmp/kasku"
+  include_ext = ["go"]
+  exclude_dir = ["tmp", "bin", "web/templates", "docs"]
+  delay = 1000
+
+[screen]
+  clear_on_rebuild = true
+  keep_scroll = true

@@ -1,0 +1,134 @@
+package pages
+
+import (
+	"fmt"
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+	"github.com/kasku/kasku/web/templates/layout"
+)
+
+type FamilyData struct {
+	User        *model.User
+	Family      *model.Family
+	Flash       components.FlashData
+	Members     []*model.User
+	InviteLink  string // set after generating an invite
+	InviteError string
+}
+
+templ Family(d FamilyData) {
+	@layout.Base("Family", d.User, d.Flash) {
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold text-gray-900">{ d.Family.Name }</h1>
+			<p class="text-sm text-gray-500 mt-0.5">Family members & invites</p>
+		</div>
+		<!-- Members list -->
+		<div class="bg-white rounded-xl border border-gray-200 shadow-sm mb-6">
+			<div class="px-5 py-4 border-b border-gray-100">
+				<h2 class="text-base font-semibold text-gray-900">Members</h2>
+			</div>
+			<ul class="divide-y divide-gray-100">
+				for _, m := range d.Members {
+					<li class="px-4 sm:px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:justify-between">
+						<div class="min-w-0">
+							<p class="text-sm font-medium text-gray-900">{ m.Name }</p>
+							<p class="text-xs text-gray-400 truncate">{ m.Email }</p>
+						</div>
+						<div class="flex items-center gap-2 flex-wrap">
+							if m.InviteToken.Valid {
+								<span class="text-xs px-2 py-0.5 rounded-full bg-yellow-50 text-yellow-700 border border-yellow-200">Pending</span>
+							} else {
+								<span class="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 border border-green-200">Active</span>
+							}
+							<span class={ "text-xs px-2 py-0.5 rounded-full " + roleClass(m.Role) }>
+								{ string(m.Role) }
+							</span>
+							if d.User.IsAdmin() && m.ID != d.User.ID {
+								<button
+									class="text-xs text-red-400 hover:text-red-600"
+									hx-delete={ memberDeleteURL(m.ID) }
+									hx-target="closest li"
+									hx-swap="outerHTML"
+									hx-confirm={ "Remove " + m.Name + " from the family?" }>
+									Remove
+								</button>
+							}
+						</div>
+					</li>
+				}
+			</ul>
+		</div>
+		<!-- Invite section (admin only) -->
+		if d.User.IsAdmin() {
+			<div class="bg-white rounded-xl border border-gray-200 shadow-sm p-5">
+				<h2 class="text-base font-semibold text-gray-900 mb-4">Invite a Family Member</h2>
+				if d.InviteLink != "" {
+					<div class="mb-4 rounded-md bg-green-50 border border-green-200 p-4">
+						<p class="text-sm text-green-800 font-medium mb-1">Invite link generated!</p>
+						<p class="text-xs text-gray-500 mb-2">Share this link with your family member:</p>
+						<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+							<input
+								type="text"
+								readonly
+								value={ d.InviteLink }
+								class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm bg-gray-50 focus:outline-none text-xs sm:text-sm"
+								onclick="this.select()"/>
+							<button
+								onclick={ copyLink(d.InviteLink) }
+								class="px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shrink-0">
+								Copy
+							</button>
+						</div>
+					</div>
+				}
+				if d.InviteError != "" {
+					<div class="mb-4 rounded-md bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+						{ d.InviteError }
+					</div>
+				}
+				<form action="/family/invite" method="POST" class="space-y-4">
+					<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+							<input
+								type="text"
+								name="name"
+								required
+								placeholder="Partner's name"
+								class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+						</div>
+						<div>
+							<label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+							<input
+								type="email"
+								name="email"
+								required
+								placeholder="Partner's email"
+								class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"/>
+						</div>
+					</div>
+					<button
+						type="submit"
+						class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors">
+						Generate Invite Link
+					</button>
+				</form>
+			</div>
+		}
+	}
+}
+
+func roleClass(role model.UserRole) string {
+	if role == model.RoleAdmin {
+		return "bg-indigo-50 text-indigo-700 border border-indigo-200"
+	}
+	return "bg-gray-50 text-gray-600 border border-gray-200"
+}
+
+func memberDeleteURL(id int64) string {
+	return fmt.Sprintf("/family/members/%d", id)
+}
+
+script copyLink(link string) {
+	navigator.clipboard.writeText(link);
+}

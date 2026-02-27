@@ -1,0 +1,41 @@
+package layout
+
+import (
+	"github.com/kasku/kasku/internal/model"
+	"github.com/kasku/kasku/web/templates/components"
+)
+
+templ Base(title string, user *model.User, flash components.FlashData) {
+	<!DOCTYPE html>
+	<html lang="en" class="h-full bg-gray-50">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>{ title } — Kasku</title>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
+			<style>
+				[x-cloak] { display: none !important; }
+				.htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+				.htmx-request .htmx-indicator { opacity: 1; }
+			</style>
+		</head>
+		<body class="h-full" hx-boost="true">
+			@components.Navbar(user)
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+				if flash.Type != "" {
+					@components.Flash(flash)
+				}
+				{ children... }
+			</div>
+			<!-- Modal shell: HTMX fills this with modal content -->
+			<div id="modal"></div>
+			<!-- Close modal when HX-Trigger: closeModal is received -->
+			<script>
+				document.body.addEventListener('closeModal', function() {
+					document.getElementById('modal').innerHTML = '';
+				});
+			</script>
+		</body>
+	</html>
+}
