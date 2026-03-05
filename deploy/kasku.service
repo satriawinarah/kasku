@@ -1,0 +1,24 @@
+[Unit]
+Description=Kasku - Family Money Manager
+After=network.target
+
+[Service]
+Type=simple
+User=kasku
+Group=kasku
+WorkingDirectory=/opt/kasku
+ExecStart=/opt/kasku/kasku
+EnvironmentFile=/opt/kasku/.env
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/kasku
+
+[Install]
+WantedBy=multi-user.target
