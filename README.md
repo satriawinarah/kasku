@@ -107,4 +107,4 @@ make build-prod   # Cross-compile optimised Linux binary
 
 ## Project Structure
 
-See [docs/BACKEND.md](docs/BACKEND.md) for the Go package architecture and [docs/FRONTEND.md](docs/FRONTEND.md) for the template and HTMX patterns.
+See [docs/BACKEND.md](docs/BACKEND.md) for the Go package architecture, [docs/FRONTEND.md](docs/FRONTEND.md) for the template and HTMX patterns, and [docs/NGINX.md](docs/NGINX.md) for the Nginx reverse proxy setup.

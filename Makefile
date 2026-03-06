@@ -8,7 +8,7 @@ DEPLOY_DIR  := /opt/kasku
 SERVICE     := kasku
 
 .PHONY: all build run dev clean templ-gen templ-watch test lint fmt tools build-prod help \
-        deploy deploy-setup deploy-stop deploy-status deploy-logs deploy-uninstall
+        deploy deploy-setup deploy-stop deploy-status deploy-logs deploy-uninstall deploy-nginx
 
 ## Generate templ files (.templ -> _templ.go)
 templ-gen:
@@ -143,6 +143,18 @@ deploy-uninstall:
 	@sudo userdel $(SERVICE) 2>/dev/null || true
 	@echo "==> Uninstall complete."
 
+## Install Nginx reverse proxy config
+deploy-nginx:
+	@echo "==> Installing Nginx config..."
+	@if ! command -v nginx >/dev/null 2>&1; then \
+		echo "Installing Nginx..."; \
+		sudo apt-get update && sudo apt-get install -y nginx; \
+	fi
+	@sudo cp deploy/nginx.conf /etc/nginx/sites-available/$(SERVICE)
+	@sudo ln -sf /etc/nginx/sites-available/$(SERVICE) /etc/nginx/sites-enabled/$(SERVICE)
+	@sudo nginx -t && sudo systemctl reload nginx
+	@echo "==> Nginx configured. Access the app at http://202.10.42.99"
+
 help:
 	@echo "Kasku - Family Money Manager"
 	@echo ""
@@ -164,4 +176,5 @@ help:
 	@echo "  deploy-stop      Stop the daemon"
 	@echo "  deploy-status    Show daemon status"
 	@echo "  deploy-logs      Tail daemon logs"
+	@echo "  deploy-nginx     Install Nginx reverse proxy"
 	@echo "  deploy-uninstall Remove everything (backs up DB)"
